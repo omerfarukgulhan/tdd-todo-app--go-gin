@@ -13,7 +13,7 @@ type ITodoService interface {
 	GetTodoById(todoId int) (domain.Todo, error)
 	GetAllTodosByUserId(userId int) ([]domain.Todo, error)
 	AddTodo(todoCreate request.TodoCreate) (domain.Todo, error)
-	UpdateTodo(todoId int, todo domain.Todo) (domain.Todo, error)
+	UpdateTodo(todoId int, todoUpdate request.TodoUpdate) (domain.Todo, error)
 	DeleteTodo(todoId int) error
 }
 
@@ -26,7 +26,7 @@ func NewTodoService(todoRepository persistence.ITodoRepository) ITodoService {
 }
 
 func (todoService TodoService) GetAllTodos() ([]domain.Todo, error) {
-	return todoService.GetAllTodos()
+	return todoService.todoRepository.GetAllTodos()
 }
 
 func (todoService TodoService) GetTodoById(todoId int) (domain.Todo, error) {
@@ -38,7 +38,7 @@ func (todoService TodoService) GetAllTodosByUserId(userId int) ([]domain.Todo, e
 }
 
 func (todoService TodoService) AddTodo(todoCreate request.TodoCreate) (domain.Todo, error) {
-	validationError := validateTodoCreate(todoCreate)
+	validationError := validateTodo(todoCreate)
 	if validationError != nil {
 		return domain.Todo{}, validationError
 	}
@@ -53,19 +53,49 @@ func (todoService TodoService) AddTodo(todoCreate request.TodoCreate) (domain.To
 	})
 }
 
-func (todoService TodoService) UpdateTodo(todoId int, todo domain.Todo) (domain.Todo, error) {
-	return todoService.UpdateTodo(todoId, todo)
+func (todoService TodoService) UpdateTodo(todoId int, todoUpdate request.TodoUpdate) (domain.Todo, error) {
+	validationError := validateTodo(todoUpdate)
+	if validationError != nil {
+		return domain.Todo{}, validationError
+	}
+	existingTodo, err := todoService.todoRepository.GetTodoById(todoId)
+	if err != nil {
+		return domain.Todo{}, err
+	}
+
+	updatedTodo := domain.Todo{
+		Id:          existingTodo.Id,
+		UserId:      existingTodo.UserId,
+		Title:       todoUpdate.Title,
+		Description: todoUpdate.Description,
+		IsCompleted: todoUpdate.IsCompleted,
+		CreatedAt:   existingTodo.CreatedAt,
+		UpdatedAt:   time.Now(),
+	}
+
+	return todoService.todoRepository.UpdateTodo(todoId, updatedTodo)
 }
 
 func (todoService TodoService) DeleteTodo(todoId int) error {
 	return todoService.todoRepository.DeleteTodo(todoId)
 }
 
-func validateTodoCreate(todoCreate request.TodoCreate) error {
-	if len(todoCreate.Title) <= 3 {
-		return errors.New("Todo title must be at least 3 character long")
-	} else if len(todoCreate.Description) <= 5 {
-		return errors.New("Todo description must be at least 5 character long")
+func validateTodo(todo interface{}) error {
+	switch t := todo.(type) {
+	case request.TodoCreate:
+		if len(t.Title) <= 3 {
+			return errors.New("Todo title must be at least 3 characters long")
+		} else if len(t.Description) <= 5 {
+			return errors.New("Todo description must be at least 5 characters long")
+		}
+	case request.TodoUpdate:
+		if len(t.Title) <= 3 {
+			return errors.New("Todo title must be at least 3 characters long")
+		} else if len(t.Description) <= 5 {
+			return errors.New("Todo description must be at least 5 characters long")
+		}
+	default:
+		return errors.New("Unsupported type")
 	}
 
 	return nil
