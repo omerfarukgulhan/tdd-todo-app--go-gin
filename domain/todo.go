@@ -1,13 +1,12 @@
 package domain
 
 import (
-	"github.com/google/uuid"
 	"time"
 )
 
 type Todo struct {
-	Id          uuid.UUID `json:"id"`
-	UserId      uuid.UUID `json:"userId"`
+	Id          int       `json:"id"`
+	UserId      int       `json:"userId"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	IsCompleted bool      `json:"isCompleted"`

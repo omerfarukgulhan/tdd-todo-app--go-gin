@@ -33,22 +33,34 @@ func GetConnectionPool(context context.Context, config Config) *pgxpool.Pool {
 }
 
 func createTables(ctx context.Context, dbPool *pgxpool.Pool) {
+	createUserTableQuery := `
+	CREATE TABLE IF NOT EXISTS users (
+   	id SERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,   
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL   
+	);
+	`
 	createTodoTableQuery := `
 	CREATE TABLE IF NOT EXISTS todos (
-		id UUID PRIMARY KEY,
-		user_id UUID NOT NULL,                 
+		id SERIAL PRIMARY KEY,
+		user_id INT NOT NULL,     
 		title VARCHAR(255) NOT NULL,
 		description TEXT,
 		is_completed BOOLEAN DEFAULT FALSE,
 		created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-		updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-		FOREIGN KEY (user_id) REFERENCES users(id)  
+		updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+-- 		FOREIGN KEY (user_id) REFERENCES users(id)  
 	);
 	`
 
-	_, err := dbPool.Exec(ctx, createTodoTableQuery)
+	_, err := dbPool.Exec(ctx, createUserTableQuery)
 	if err != nil {
-		log.Fatalf("Failed to create tables: %v", err)
+		log.Fatalf("Failed to create user table: %v", err)
+	}
+	_, err = dbPool.Exec(ctx, createTodoTableQuery)
+	if err != nil {
+		log.Fatalf("Failed to create todo table: %v", err)
 	}
 
 	log.Println("Tables created or already exist.")
