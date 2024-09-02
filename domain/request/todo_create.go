@@ -1,6 +1,6 @@
 package request
 
-type CreateTodo struct {
+type TodoCreate struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 }
