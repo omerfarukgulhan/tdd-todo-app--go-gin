@@ -54,9 +54,9 @@ func (todoRepository *TodoRepository) GetTodoById(todoId int) (domain.Todo, erro
 	scanErr := queryRow.Scan(&id, &userId, &title, &description, &isCompleted, &createdAt, &updatedAt)
 	if scanErr != nil {
 		if scanErr == sql.ErrNoRows {
-			return domain.Todo{}, fmt.Errorf("Todo not found with id %d", todoId)
+			return domain.Todo{}, errors.New(fmt.Sprintf("Todo with id %d not found", todoId))
 		}
-		return domain.Todo{}, fmt.Errorf("Error while getting todo with id %d: %v", todoId, scanErr)
+		return domain.Todo{}, errors.New(fmt.Sprintf("Error while getting todo with id %d: %v", todoId, scanErr))
 	}
 
 	return domain.Todo{
@@ -102,7 +102,7 @@ func (todoRepository *TodoRepository) UpdateTodo(todoId int, todo domain.Todo) (
 
 	rowsAffected := result.RowsAffected()
 	if rowsAffected == 0 {
-		return domain.Todo{}, fmt.Errorf("Todo with id %d not found", todo.Id)
+		return domain.Todo{}, errors.New(fmt.Sprintf("Todo with id %d not found", todo.Id))
 	}
 
 	return todo, nil
@@ -112,7 +112,7 @@ func (todoRepository *TodoRepository) DeleteTodo(todoId int) error {
 	ctx := context.Background()
 	_, getErr := todoRepository.GetTodoById(todoId)
 	if getErr != nil {
-		return errors.New("Product not found")
+		return errors.New(fmt.Sprintf("Todo with id %d not found", todoId))
 	}
 
 	deleteSql := `DELETE FROM todos WHERE id = $1`

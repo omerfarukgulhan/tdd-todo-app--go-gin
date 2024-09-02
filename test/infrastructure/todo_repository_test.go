@@ -53,6 +53,7 @@ func mustParseTime(timeStr string) time.Time {
 	}
 	return t
 }
+
 func TestGetAllTodos(t *testing.T) {
 	setupData(ctx, dbPool)
 
