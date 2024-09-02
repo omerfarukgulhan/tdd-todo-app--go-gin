@@ -6,12 +6,12 @@ import (
 )
 
 type TodoResponse struct {
-	UserId      int
-	Title       string
-	Description string
-	IsCompleted bool
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	UserId      int       `json:"userId"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	IsCompleted bool      `json:"isCompleted"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 func NewTodoResponse(todo domain.Todo) TodoResponse {
