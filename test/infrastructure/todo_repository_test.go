@@ -275,6 +275,6 @@ func TestDeleteTodo(t *testing.T) {
 //	func TestSetupData(t *testing.T) {
 //		setupData(ctx, dbPool)
 //	}
-//func TestClearData(t *testing.T) {
-//	clearData(ctx, dbPool)
-//}
+func TestClearData(t *testing.T) {
+	clearData(ctx, dbPool)
+}

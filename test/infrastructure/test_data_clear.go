@@ -7,7 +7,7 @@ import (
 )
 
 func TruncateTestData(ctx context.Context, dbPool *pgxpool.Pool) {
-	_, truncateResultErr := dbPool.Exec(ctx, "TRUNCATE todos")
+	_, truncateResultErr := dbPool.Exec(ctx, "TRUNCATE todos RESTART IDENTITY")
 	if truncateResultErr != nil {
 		log.Printf(truncateResultErr.Error())
 	} else {

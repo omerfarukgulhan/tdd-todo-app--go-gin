@@ -118,7 +118,7 @@ func (todoRepository *TodoRepository) DeleteTodo(todoId int) error {
 	deleteSql := `DELETE FROM todos WHERE id = $1`
 	_, err := todoRepository.dbPool.Exec(ctx, deleteSql, todoId)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error while deleting product with id %d", todoId))
+		return errors.New(fmt.Sprintf("Error while deleting todo with id %d", todoId))
 	}
 
 	return nil

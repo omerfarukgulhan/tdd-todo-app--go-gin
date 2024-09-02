@@ -1,18 +1,29 @@
 package main
 
-import "github.com/gin-gonic/gin"
-
-//TIP To run your code, right-click the code and select <b>Run</b>. Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.
+import (
+	"github.com/gin-gonic/gin"
+	"golang.org/x/net/context"
+	"todo-app--go-gin/common/app"
+	"todo-app--go-gin/common/postgresql"
+	"todo-app--go-gin/controller"
+	"todo-app--go-gin/persistence"
+	"todo-app--go-gin/service"
+)
 
 func main() {
+	ctx := context.Background()
 	server := gin.Default()
-	server.GET("/hello", func(c *gin.Context) {
-		c.JSON(200, gin.H{"str": "str"})
-	})
+	configurationManager := app.NewConfigurationManager()
+	dbPool := postgresql.GetConnectionPool(ctx, configurationManager.PostgreSqlConfig)
 
-	server.Run(":8080")
+	todoRepo := persistence.NewTodoRepository(dbPool)
+	todoService := service.NewTodoService(todoRepo)
+	todoController := controller.NewTodoController(todoService)
+
+	todoController.RegisterRoutes(server)
+
+	err := server.Run(":8080")
+	if err != nil {
+		panic(err)
+	}
 }
-
-//TIP See GoLand help at <a href="https://www.jetbrains.com/help/go/">jetbrains.com/help/go/</a>.
-// Also, you can try interactive lessons for GoLand by selecting 'Help | Learn IDE Features' from the main menu.
