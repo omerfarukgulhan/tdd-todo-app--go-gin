@@ -1,61 +1,58 @@
 package infrastructure
 
 import (
-	"context"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/stretchr/testify/assert"
-	"os"
 	"testing"
 	"time"
-	"todo-app--go-gin/common/postgresql"
 	"todo-app--go-gin/domain"
-	"todo-app--go-gin/persistence"
 )
 
-var todoRepository persistence.ITodoRepository
-var dbPool *pgxpool.Pool
-var ctx context.Context
+//
+//var todoRepository persistence.ITodoRepository
+//var dbPool *pgxpool.Pool
+//var ctx context.Context
+//
+//func TestMain(m *testing.M) {
+//	ctx = context.Background()
+//
+//	dbPool = postgresql.GetConnectionPool(ctx, postgresql.Config{
+//		Host:                  "localhost",
+//		Port:                  "5432",
+//		UserName:              "postgres",
+//		Password:              "153515",
+//		DbName:                "workshops",
+//		MaxConnections:        "10",
+//		MaxConnectionIdleTime: "10s",
+//	})
+//
+//	todoRepository = persistence.NewTodoRepository(dbPool)
+//	exitCode := m.Run()
+//	os.Exit(exitCode)
+//}
 
-func TestMain(m *testing.M) {
-	ctx = context.Background()
-
-	dbPool = postgresql.GetConnectionPool(ctx, postgresql.Config{
-		Host:                  "localhost",
-		Port:                  "5432",
-		UserName:              "postgres",
-		Password:              "153515",
-		DbName:                "workshops",
-		MaxConnections:        "10",
-		MaxConnectionIdleTime: "10s",
-	})
-
-	todoRepository = persistence.NewTodoRepository(dbPool)
-	exitCode := m.Run()
-	os.Exit(exitCode)
-}
-
-func setupData(ctx context.Context, dbPool *pgxpool.Pool) {
-	TestDataInitialize(ctx, dbPool)
-}
-
-func clearData(ctx context.Context, dbPool *pgxpool.Pool) {
-	TruncateTestData(ctx, dbPool)
-}
-
-func parseTime(timeStr string) (time.Time, error) {
-	return time.Parse("2006-01-02T15:04:05", timeStr)
-}
-
-func mustParseTime(timeStr string) time.Time {
-	t, err := parseTime(timeStr)
-	if err != nil {
-		panic(err)
-	}
-	return t
-}
+//func SetupData(ctx context.Context, dbPool *pgxpool.Pool) {
+//	TestDataInitialize(ctx, dbPool)
+//}
+//
+//func ClearData(ctx context.Context, dbPool *pgxpool.Pool) {
+//	TruncateTestData(ctx, dbPool)
+//}
+//
+//func parseTime(timeStr string) (time.Time, error) {
+//	return time.Parse("2006-01-02T15:04:05", timeStr)
+//}
+//
+//func MustParseTime(timeStr string) time.Time {
+//	t, err := parseTime(timeStr)
+//	if err != nil {
+//		panic(err)
+//	}
+//	return t
+//
+//}
 
 func TestGetAllTodos(t *testing.T) {
-	setupData(ctx, dbPool)
+	SetupData(ctx, dbPool)
 
 	expectedTodos := []domain.Todo{
 		{
@@ -64,8 +61,8 @@ func TestGetAllTodos(t *testing.T) {
 			Title:       "Buy groceries",
 			Description: "Purchase fruits, vegetables, and bread",
 			IsCompleted: false,
-			CreatedAt:   mustParseTime("2024-09-01T10:00:00"),
-			UpdatedAt:   mustParseTime("2024-09-01T10:00:00"),
+			CreatedAt:   MustParseTime("2024-09-01T10:00:00"),
+			UpdatedAt:   MustParseTime("2024-09-01T10:00:00"),
 		},
 		{
 			Id:          2,
@@ -73,8 +70,8 @@ func TestGetAllTodos(t *testing.T) {
 			Title:       "Complete assignment",
 			Description: "Finish the report for the upcoming meeting",
 			IsCompleted: true,
-			CreatedAt:   mustParseTime("2024-09-02T09:30:00"),
-			UpdatedAt:   mustParseTime("2024-09-02T09:30:00"),
+			CreatedAt:   MustParseTime("2024-09-02T09:30:00"),
+			UpdatedAt:   MustParseTime("2024-09-02T09:30:00"),
 		},
 		{
 			Id:          3,
@@ -82,8 +79,8 @@ func TestGetAllTodos(t *testing.T) {
 			Title:       "Workout session",
 			Description: "Attend the gym for a cardio session",
 			IsCompleted: false,
-			CreatedAt:   mustParseTime("2024-09-03T18:00:00"),
-			UpdatedAt:   mustParseTime("2024-09-03T18:00:00"),
+			CreatedAt:   MustParseTime("2024-09-03T18:00:00"),
+			UpdatedAt:   MustParseTime("2024-09-03T18:00:00"),
 		},
 		{
 			Id:          4,
@@ -91,8 +88,8 @@ func TestGetAllTodos(t *testing.T) {
 			Title:       "Read a book",
 			Description: "Start reading a new novel",
 			IsCompleted: true,
-			CreatedAt:   mustParseTime("2024-09-04T20:00:00"),
-			UpdatedAt:   mustParseTime("2024-09-04T20:00:00"),
+			CreatedAt:   MustParseTime("2024-09-04T20:00:00"),
+			UpdatedAt:   MustParseTime("2024-09-04T20:00:00"),
 		},
 	}
 
@@ -101,11 +98,11 @@ func TestGetAllTodos(t *testing.T) {
 		assert.Equal(t, len(expectedTodos), len(actualTodos))
 	})
 
-	clearData(ctx, dbPool)
+	ClearData(ctx, dbPool)
 }
 
 func TestGetTodoById(t *testing.T) {
-	setupData(ctx, dbPool)
+	SetupData(ctx, dbPool)
 
 	expectedTodo := domain.Todo{
 		Id:          1,
@@ -123,11 +120,11 @@ func TestGetTodoById(t *testing.T) {
 		assert.Equal(t, expectedTodo.Description, actualTodo.Description)
 	})
 
-	clearData(ctx, dbPool)
+	ClearData(ctx, dbPool)
 }
 
 func TestGetAllTodosByUserId(t *testing.T) {
-	setupData(ctx, dbPool)
+	SetupData(ctx, dbPool)
 
 	expectedTodos := []domain.Todo{
 		{
@@ -136,8 +133,8 @@ func TestGetAllTodosByUserId(t *testing.T) {
 			Title:       "Buy groceries",
 			Description: "Purchase fruits, vegetables, and bread",
 			IsCompleted: false,
-			CreatedAt:   mustParseTime("2024-09-01T10:00:00"),
-			UpdatedAt:   mustParseTime("2024-09-01T10:00:00"),
+			CreatedAt:   MustParseTime("2024-09-01T10:00:00"),
+			UpdatedAt:   MustParseTime("2024-09-01T10:00:00"),
 		},
 		{
 			Id:          2,
@@ -145,8 +142,8 @@ func TestGetAllTodosByUserId(t *testing.T) {
 			Title:       "Complete assignment",
 			Description: "Finish the report for the upcoming meeting",
 			IsCompleted: true,
-			CreatedAt:   mustParseTime("2024-09-02T09:30:00"),
-			UpdatedAt:   mustParseTime("2024-09-02T09:30:00"),
+			CreatedAt:   MustParseTime("2024-09-02T09:30:00"),
+			UpdatedAt:   MustParseTime("2024-09-02T09:30:00"),
 		},
 		{
 			Id:          3,
@@ -154,8 +151,8 @@ func TestGetAllTodosByUserId(t *testing.T) {
 			Title:       "Workout session",
 			Description: "Attend the gym for a cardio session",
 			IsCompleted: false,
-			CreatedAt:   mustParseTime("2024-09-03T18:00:00"),
-			UpdatedAt:   mustParseTime("2024-09-03T18:00:00"),
+			CreatedAt:   MustParseTime("2024-09-03T18:00:00"),
+			UpdatedAt:   MustParseTime("2024-09-03T18:00:00"),
 		},
 	}
 
@@ -165,7 +162,7 @@ func TestGetAllTodosByUserId(t *testing.T) {
 		assert.Equal(t, expectedTodos[0].UserId, actualTodos[0].UserId)
 	})
 
-	clearData(ctx, dbPool)
+	ClearData(ctx, dbPool)
 }
 
 func TestAddTodo(t *testing.T) {
@@ -196,11 +193,11 @@ func TestAddTodo(t *testing.T) {
 		assert.Equal(t, expectedTodos[0].Description, actualTodos[0].Description)
 	})
 
-	clearData(ctx, dbPool)
+	ClearData(ctx, dbPool)
 }
 
 func TestUpdateTodo(t *testing.T) {
-	setupData(ctx, dbPool)
+	SetupData(ctx, dbPool)
 
 	expectedTodo := domain.Todo{
 		Id:          1,
@@ -227,11 +224,11 @@ func TestUpdateTodo(t *testing.T) {
 		assert.Equal(t, expectedTodo.Description, actualTodos.Description)
 	})
 
-	clearData(ctx, dbPool)
+	ClearData(ctx, dbPool)
 }
 
 func TestDeleteTodo(t *testing.T) {
-	setupData(ctx, dbPool)
+	SetupData(ctx, dbPool)
 
 	expectedTodos := []domain.Todo{
 		{
@@ -240,8 +237,8 @@ func TestDeleteTodo(t *testing.T) {
 			Title:       "Buy groceries",
 			Description: "Purchase fruits, vegetables, and bread",
 			IsCompleted: false,
-			CreatedAt:   mustParseTime("2024-09-01T10:00:00"),
-			UpdatedAt:   mustParseTime("2024-09-01T10:00:00"),
+			CreatedAt:   MustParseTime("2024-09-01T10:00:00"),
+			UpdatedAt:   MustParseTime("2024-09-01T10:00:00"),
 		},
 		{
 			Id:          2,
@@ -249,8 +246,8 @@ func TestDeleteTodo(t *testing.T) {
 			Title:       "Complete assignment",
 			Description: "Finish the report for the upcoming meeting",
 			IsCompleted: true,
-			CreatedAt:   mustParseTime("2024-09-02T09:30:00"),
-			UpdatedAt:   mustParseTime("2024-09-02T09:30:00"),
+			CreatedAt:   MustParseTime("2024-09-02T09:30:00"),
+			UpdatedAt:   MustParseTime("2024-09-02T09:30:00"),
 		},
 		{
 			Id:          4,
@@ -258,8 +255,8 @@ func TestDeleteTodo(t *testing.T) {
 			Title:       "Read a book",
 			Description: "Start reading a new novel",
 			IsCompleted: true,
-			CreatedAt:   mustParseTime("2024-09-04T20:00:00"),
-			UpdatedAt:   mustParseTime("2024-09-04T20:00:00"),
+			CreatedAt:   MustParseTime("2024-09-04T20:00:00"),
+			UpdatedAt:   MustParseTime("2024-09-04T20:00:00"),
 		},
 	}
 
@@ -269,12 +266,13 @@ func TestDeleteTodo(t *testing.T) {
 		assert.Equal(t, len(expectedTodos), len(actualTodos))
 	})
 
-	clearData(ctx, dbPool)
+	ClearData(ctx, dbPool)
 }
 
-//	func TestSetupData(t *testing.T) {
-//		setupData(ctx, dbPool)
-//	}
+func TestSetupData(t *testing.T) {
+	SetupData(ctx, dbPool)
+}
+
 func TestClearData(t *testing.T) {
-	clearData(ctx, dbPool)
+	ClearData(ctx, dbPool)
 }
