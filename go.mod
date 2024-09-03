@@ -4,9 +4,13 @@ go 1.23.0
 
 require (
 	github.com/gin-gonic/gin v1.10.0
+	github.com/go-playground/assert/v2 v2.2.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.9.0
+	golang.org/x/crypto v0.26.0
+	golang.org/x/net v0.28.0
 )
 
 require (
@@ -40,8 +44,6 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.9.0 // indirect
-	golang.org/x/crypto v0.26.0 // indirect
-	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
