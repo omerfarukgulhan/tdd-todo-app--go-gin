@@ -2,73 +2,11 @@ package service
 
 import (
 	"github.com/stretchr/testify/assert"
-	"os"
 	"testing"
-	"time"
 	"todo-app--go-gin/domain"
 	"todo-app--go-gin/domain/request"
-	"todo-app--go-gin/service"
+	"todo-app--go-gin/domain/response"
 )
-
-var todoService service.ITodoService
-
-func parseTime(timeStr string) (time.Time, error) {
-	return time.Parse("2006-01-02T15:04:05", timeStr)
-}
-
-func mustParseTime(timeStr string) time.Time {
-	t, err := parseTime(timeStr)
-	if err != nil {
-		panic(err)
-	}
-	return t
-}
-
-func TestMain(m *testing.M) {
-	initialTodos := []domain.Todo{
-		{
-			Id:          1,
-			UserId:      1,
-			Title:       "Buy groceries",
-			Description: "Purchase fruits, vegetables, and bread",
-			IsCompleted: false,
-			CreatedAt:   mustParseTime("2024-09-01T10:00:00"),
-			UpdatedAt:   mustParseTime("2024-09-01T10:00:00"),
-		},
-		{
-			Id:          2,
-			UserId:      1,
-			Title:       "Complete assignment",
-			Description: "Finish the report for the upcoming meeting",
-			IsCompleted: true,
-			CreatedAt:   mustParseTime("2024-09-02T09:30:00"),
-			UpdatedAt:   mustParseTime("2024-09-02T09:30:00"),
-		},
-		{
-			Id:          3,
-			UserId:      1,
-			Title:       "Workout session",
-			Description: "Attend the gym for a cardio session",
-			IsCompleted: false,
-			CreatedAt:   mustParseTime("2024-09-03T18:00:00"),
-			UpdatedAt:   mustParseTime("2024-09-03T18:00:00"),
-		},
-		{
-			Id:          4,
-			UserId:      2,
-			Title:       "Read a book",
-			Description: "Start reading a new novel",
-			IsCompleted: true,
-			CreatedAt:   mustParseTime("2024-09-04T20:00:00"),
-			UpdatedAt:   mustParseTime("2024-09-04T20:00:00"),
-		},
-	}
-
-	fakeTodoRepository := NewFakeTodoRepository(initialTodos)
-	todoService = service.NewTodoService(fakeTodoRepository)
-	exitCode := m.Run()
-	os.Exit(exitCode)
-}
 
 func Test_ShouldGetAllTodo(t *testing.T) {
 	t.Run("ShouldGetAllTodo", func(t *testing.T) {
@@ -78,7 +16,7 @@ func Test_ShouldGetAllTodo(t *testing.T) {
 }
 
 func Test_ShouldGetTodoById(t *testing.T) {
-	expectedTodo := domain.Todo{
+	expectedTodo := response.NewTodoResponse(domain.Todo{
 		Id:          1,
 		UserId:      1,
 		Title:       "Buy groceries",
@@ -86,7 +24,7 @@ func Test_ShouldGetTodoById(t *testing.T) {
 		IsCompleted: false,
 		CreatedAt:   mustParseTime("2024-09-01T10:00:00"),
 		UpdatedAt:   mustParseTime("2024-09-01T10:00:00"),
-	}
+	})
 
 	t.Run("ShouldGetTodoById", func(t *testing.T) {
 		actualTodo, _ := todoService.GetTodoById(1)
