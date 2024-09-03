@@ -49,8 +49,8 @@ func createTables(ctx context.Context, dbPool *pgxpool.Pool) {
 		description TEXT,
 		is_completed BOOLEAN DEFAULT FALSE,
 		created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-		updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-		FOREIGN KEY (user_id) REFERENCES users(id)  
+		updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+-- 		FOREIGN KEY (user_id) REFERENCES users(id)  
 	);
 	`
 

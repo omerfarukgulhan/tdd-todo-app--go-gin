@@ -83,26 +83,29 @@ func (todoRepository *TodoRepository) GetAllTodosByUserId(userId int) ([]domain.
 
 func (todoRepository *TodoRepository) AddTodo(todo domain.Todo) (domain.Todo, error) {
 	ctx := context.Background()
-	insertSql := `INSERT INTO todos (user_id, title, description, is_completed, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)`
-	_, err := todoRepository.dbPool.Exec(ctx, insertSql, todo.UserId, todo.Title, todo.Description, todo.IsCompleted, todo.CreatedAt, todo.UpdatedAt)
-	if err != nil {
-		return domain.Todo{}, err
+	insertSql := `INSERT INTO todos (user_id, title, description, is_completed, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
+	var id int
+	queryRow := todoRepository.dbPool.QueryRow(ctx, insertSql, todo.UserId, todo.Title, todo.Description, todo.IsCompleted, todo.CreatedAt, todo.UpdatedAt)
+	scanErr := queryRow.Scan(&id)
+	if scanErr != nil {
+		return domain.Todo{}, scanErr
 	}
+
+	todo.Id = id
 
 	return todo, nil
 }
 
 func (todoRepository *TodoRepository) UpdateTodo(todoId int, todo domain.Todo) (domain.Todo, error) {
 	ctx := context.Background()
-	updateSQL := `UPDATE todos SET user_id = $1, title = $2, description = $3, is_completed = $4, updated_at = $5 WHERE id = $6`
-	result, err := todoRepository.dbPool.Exec(ctx, updateSQL, todo.UserId, todo.Title, todo.Description, todo.IsCompleted, todo.UpdatedAt, todoId)
-	if err != nil {
-		return domain.Todo{}, err
-	}
-
-	rowsAffected := result.RowsAffected()
-	if rowsAffected == 0 {
-		return domain.Todo{}, errors.New(fmt.Sprintf("Todo with id %d not found", todo.Id))
+	updateTodoSql := `UPDATE todos SET user_id = $1, title = $2, description = $3, is_completed = $4, updated_at = $5 WHERE id = $6 RETURNING id, user_id, title, description, is_completed, updated_at;`
+	queryRow := todoRepository.dbPool.QueryRow(ctx, updateTodoSql, todo.UserId, todo.Title, todo.Description, todo.IsCompleted, todo.UpdatedAt, todoId)
+	scanErr := queryRow.Scan(&todo.Id, &todo.UserId, &todo.Title, &todo.Description, &todo.IsCompleted, &todo.UpdatedAt)
+	if scanErr != nil {
+		if scanErr == sql.ErrNoRows {
+			return domain.Todo{}, errors.New(fmt.Sprintf("Todo with id %d not found", todoId))
+		}
+		return domain.Todo{}, errors.New(fmt.Sprintf("Failed to update todo: %v", scanErr))
 	}
 
 	return todo, nil

@@ -54,3 +54,11 @@ func MustParseTime(timeStr string) time.Time {
 
 	return t
 }
+
+func TestSetupData(t *testing.T) {
+	SetupData(ctx, dbPool)
+}
+
+func TestClearData(t *testing.T) {
+	ClearData(ctx, dbPool)
+}

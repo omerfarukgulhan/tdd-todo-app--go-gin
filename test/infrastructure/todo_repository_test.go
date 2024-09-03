@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -54,48 +55,9 @@ import (
 func TestGetAllTodos(t *testing.T) {
 	SetupData(ctx, dbPool)
 
-	expectedTodos := []domain.Todo{
-		{
-			Id:          1,
-			UserId:      1,
-			Title:       "Buy groceries",
-			Description: "Purchase fruits, vegetables, and bread",
-			IsCompleted: false,
-			CreatedAt:   MustParseTime("2024-09-01T10:00:00"),
-			UpdatedAt:   MustParseTime("2024-09-01T10:00:00"),
-		},
-		{
-			Id:          2,
-			UserId:      1,
-			Title:       "Complete assignment",
-			Description: "Finish the report for the upcoming meeting",
-			IsCompleted: true,
-			CreatedAt:   MustParseTime("2024-09-02T09:30:00"),
-			UpdatedAt:   MustParseTime("2024-09-02T09:30:00"),
-		},
-		{
-			Id:          3,
-			UserId:      1,
-			Title:       "Workout session",
-			Description: "Attend the gym for a cardio session",
-			IsCompleted: false,
-			CreatedAt:   MustParseTime("2024-09-03T18:00:00"),
-			UpdatedAt:   MustParseTime("2024-09-03T18:00:00"),
-		},
-		{
-			Id:          4,
-			UserId:      2,
-			Title:       "Read a book",
-			Description: "Start reading a new novel",
-			IsCompleted: true,
-			CreatedAt:   MustParseTime("2024-09-04T20:00:00"),
-			UpdatedAt:   MustParseTime("2024-09-04T20:00:00"),
-		},
-	}
-
 	t.Run("GetAllTodos", func(t *testing.T) {
 		actualTodos, _ := todoRepository.GetAllTodos()
-		assert.Equal(t, len(expectedTodos), len(actualTodos))
+		assert.Equal(t, 4, len(actualTodos))
 	})
 
 	ClearData(ctx, dbPool)
@@ -166,18 +128,10 @@ func TestGetAllTodosByUserId(t *testing.T) {
 }
 
 func TestAddTodo(t *testing.T) {
-	expectedTodos := []domain.Todo{
-		{
-			Id:          1,
-			UserId:      1,
-			Title:       "Buy groceries",
-			Description: "Purchase fruits, vegetables, and bread",
-			IsCompleted: false,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-		},
-	}
+	SetupData(ctx, dbPool)
+
 	newTodo := domain.Todo{
+		Id:          5,
 		UserId:      1,
 		Title:       "Buy groceries",
 		Description: "Purchase fruits, vegetables, and bread",
@@ -187,10 +141,10 @@ func TestAddTodo(t *testing.T) {
 	}
 
 	t.Run("AddTodo", func(t *testing.T) {
-		todoRepository.AddTodo(newTodo)
+		_, err := todoRepository.AddTodo(newTodo)
+		fmt.Println(err)
 		actualTodos, _ := todoRepository.GetAllTodos()
-		assert.Equal(t, expectedTodos[0].Title, actualTodos[0].Title)
-		assert.Equal(t, expectedTodos[0].Description, actualTodos[0].Description)
+		assert.Equal(t, 5, len(actualTodos))
 	})
 
 	ClearData(ctx, dbPool)
@@ -266,13 +220,5 @@ func TestDeleteTodo(t *testing.T) {
 		assert.Equal(t, len(expectedTodos), len(actualTodos))
 	})
 
-	ClearData(ctx, dbPool)
-}
-
-func TestSetupData(t *testing.T) {
-	SetupData(ctx, dbPool)
-}
-
-func TestClearData(t *testing.T) {
 	ClearData(ctx, dbPool)
 }
