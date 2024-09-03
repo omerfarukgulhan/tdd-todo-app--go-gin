@@ -49,8 +49,8 @@ func createTables(ctx context.Context, dbPool *pgxpool.Pool) {
 		description TEXT,
 		is_completed BOOLEAN DEFAULT FALSE,
 		created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-		updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
--- 		FOREIGN KEY (user_id) REFERENCES users(id)  
+		updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (user_id) REFERENCES users(id)  
 	);
 	`
 
@@ -58,6 +58,7 @@ func createTables(ctx context.Context, dbPool *pgxpool.Pool) {
 	if err != nil {
 		log.Fatalf("Failed to create user table: %v", err)
 	}
+
 	_, err = dbPool.Exec(ctx, createTodoTableQuery)
 	if err != nil {
 		log.Fatalf("Failed to create todo table: %v", err)
