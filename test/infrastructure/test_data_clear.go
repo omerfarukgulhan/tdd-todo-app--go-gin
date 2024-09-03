@@ -13,4 +13,11 @@ func TruncateTestData(ctx context.Context, dbPool *pgxpool.Pool) {
 	} else {
 		log.Printf("Todos table truncated")
 	}
+
+	_, truncateResultErr = dbPool.Exec(ctx, "TRUNCATE users RESTART IDENTITY")
+	if truncateResultErr != nil {
+		log.Printf(truncateResultErr.Error())
+	} else {
+		log.Printf("Users table truncated")
+	}
 }
