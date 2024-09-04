@@ -14,7 +14,8 @@ import (
 type IUserService interface {
 	GetAllUsers() ([]response.UserResponse, error)
 	//GetUserById(userId int) (response.UserResponse, error)
-	//GetUserByEmail(userId int) ([]response.UserResponse, error)
+	GetUserByEmail(email string) (response.UserResponse, error)
+	GetUserByEmailForValidation(email string) (domain.User, error)
 	AddUser(userCreate request.UserCreate) (response.UserResponse, error)
 	//UpdateUser(userId int, UserUpdate request.UserUpdate) (response.UserResponse, error)
 	//DeleteUser(userId int) error
@@ -35,6 +36,24 @@ func (userService UserService) GetAllUsers() ([]response.UserResponse, error) {
 	}
 
 	return convertUsersToResponses(users), nil
+}
+
+func (userService UserService) GetUserByEmail(email string) (response.UserResponse, error) {
+	user, err := userService.userRepository.GetUserByEmail(email)
+	if err != nil {
+		return response.UserResponse{}, err
+	}
+
+	return response.NewUserResponse(user), nil
+}
+
+func (userService UserService) GetUserByEmailForValidation(email string) (domain.User, error) {
+	user, err := userService.userRepository.GetUserByEmail(email)
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	return user, nil
 }
 
 func (userService UserService) AddUser(userCreate request.UserCreate) (response.UserResponse, error) {

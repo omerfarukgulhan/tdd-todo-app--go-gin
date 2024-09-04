@@ -1,7 +1,6 @@
 package infrastructure
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"todo-app--go-gin/domain"
@@ -131,7 +130,6 @@ func TestDeleteUser(t *testing.T) {
 
 	t.Run("DeleteUser", func(t *testing.T) {
 		err := userRepository.DeleteUser(1)
-		fmt.Println(err)
 		actualUsers, _ := userRepository.GetAllUsers()
 		assert.Equal(t, 3, len(actualUsers))
 	})

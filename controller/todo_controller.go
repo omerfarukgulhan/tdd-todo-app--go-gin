@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 	"strconv"
 	"todo-app--go-gin/common/util/results"
@@ -76,7 +75,6 @@ func (todoController *TodoController) GetAllTodosByUserId(ctx *gin.Context) {
 func (todoController *TodoController) AddTodo(ctx *gin.Context) {
 	var newTodo request.TodoCreate
 	if err := ctx.ShouldBindJSON(&newTodo); err != nil {
-		log.Printf("error in bind")
 		ctx.JSON(http.StatusBadRequest, results.NewResult(false, "Enter todo in valid format"))
 		return
 	}
