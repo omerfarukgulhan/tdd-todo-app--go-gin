@@ -129,7 +129,7 @@ func TestDeleteUser(t *testing.T) {
 	SetupData(ctx, dbPool)
 
 	t.Run("DeleteUser", func(t *testing.T) {
-		err := userRepository.DeleteUser(1)
+		userRepository.DeleteUser(1)
 		actualUsers, _ := userRepository.GetAllUsers()
 		assert.Equal(t, 3, len(actualUsers))
 	})

@@ -13,12 +13,12 @@ import (
 
 type IUserService interface {
 	GetAllUsers() ([]response.UserResponse, error)
-	//GetUserById(userId int) (response.UserResponse, error)
+	GetUserById(userId int) (response.UserResponse, error)
 	GetUserByEmail(email string) (response.UserResponse, error)
 	GetUserByEmailForValidation(email string) (domain.User, error)
 	AddUser(userCreate request.UserCreate) (response.UserResponse, error)
-	//UpdateUser(userId int, UserUpdate request.UserUpdate) (response.UserResponse, error)
-	//DeleteUser(userId int) error
+	UpdateUser(userId int, UserUpdate request.UserUpdate) (response.UserResponse, error)
+	DeleteUser(userId int) error
 }
 
 type UserService struct {
@@ -36,6 +36,15 @@ func (userService UserService) GetAllUsers() ([]response.UserResponse, error) {
 	}
 
 	return convertUsersToResponses(users), nil
+}
+
+func (userService UserService) GetUserById(userId int) (response.UserResponse, error) {
+	user, err := userService.userRepository.GetUserById(userId)
+	if err != nil {
+		return response.UserResponse{}, err
+	}
+
+	return response.NewUserResponse(user), nil
 }
 
 func (userService UserService) GetUserByEmail(email string) (response.UserResponse, error) {
@@ -78,6 +87,31 @@ func (userService UserService) AddUser(userCreate request.UserCreate) (response.
 	return response.NewUserResponse(user), nil
 }
 
+func (userService UserService) UpdateUser(userId int, UserUpdate request.UserUpdate) (response.UserResponse, error) {
+	validationError := validateUser(UserUpdate)
+	if validationError != nil {
+		return response.UserResponse{}, validationError
+	}
+
+	user, err := userService.userRepository.GetUserById(userId)
+	if err != nil {
+		return response.UserResponse{}, err
+	}
+
+	user.Username = UserUpdate.Username
+
+	_, err = userService.userRepository.UpdateUser(userId, user)
+	if err != nil {
+		return response.UserResponse{}, err
+	}
+
+	return response.NewUserResponse(user), nil
+}
+
+func (userService UserService) DeleteUser(userId int) error {
+	return userService.userRepository.DeleteUser(userId)
+}
+
 func convertUsersToResponses(users []domain.User) []response.UserResponse {
 	var userResponses []response.UserResponse
 	for _, user := range users {
@@ -87,17 +121,26 @@ func convertUsersToResponses(users []domain.User) []response.UserResponse {
 	return userResponses
 }
 
-func validateUser(userCreate request.UserCreate) error {
-	if strings.TrimSpace(userCreate.Username) == "" {
-		return errors.New("Username cannot be empty")
-	}
+func validateUser(user interface{}) error {
+	switch u := user.(type) {
+	case request.UserCreate:
+		if strings.TrimSpace(u.Username) == "" {
+			return errors.New("Username cannot be empty")
+		}
 
-	if !isValidEmail(userCreate.Email) {
-		return errors.New("Invalid email format")
-	}
+		if !isValidEmail(u.Email) {
+			return errors.New("Invalid email format")
+		}
 
-	if len(userCreate.Password) < 5 {
-		return errors.New("Password must be at least 8 characters long")
+		if len(u.Password) < 5 {
+			return errors.New("Password must be at least 5 characters long")
+		}
+	case request.UserUpdate:
+		if strings.TrimSpace(u.Username) == "" {
+			return errors.New("Username cannot be empty")
+		}
+	default:
+		return errors.New("Unsupported type")
 	}
 
 	return nil

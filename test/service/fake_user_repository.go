@@ -43,6 +43,12 @@ func (fakeUserRepository *FakeUserRepository) GetUserByEmail(email string) (doma
 
 func (fakeUserRepository *FakeUserRepository) AddUser(user domain.User) (domain.User, error) {
 	user.Id = len(fakeUserRepository.users) + 1
+
+	for _, fakeUser := range fakeUserRepository.users {
+		if fakeUser.Email == user.Email {
+			return domain.User{}, errors.New("ERROR: duplicate key value violates unique constraint \"users_email_key\" (SQLSTATE 23505)")
+		}
+	}
 	fakeUserRepository.users = append(fakeUserRepository.users, user)
 
 	return user, nil
