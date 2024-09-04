@@ -19,7 +19,7 @@ func NewTodoController(todoService service.ITodoService) *TodoController {
 	return &TodoController{todoService: todoService}
 }
 
-func (todoController *TodoController) RegisterRoutes(router *gin.Engine) {
+func (todoController *TodoController) RegisterTodoRoutes(router *gin.Engine) {
 	todoGroup := router.Group("/todos")
 	{
 		todoGroup.GET("/", todoController.GetAllTodos)

@@ -1,6 +1,9 @@
 package service
 
 import (
+	"github.com/pkg/errors"
+	"regexp"
+	"strings"
 	"todo-app--go-gin/common/util/security"
 	"todo-app--go-gin/domain"
 	"todo-app--go-gin/domain/request"
@@ -35,11 +38,15 @@ func (userService UserService) GetAllUsers() ([]response.UserResponse, error) {
 }
 
 func (userService UserService) AddUser(userCreate request.UserCreate) (response.UserResponse, error) {
+	validationError := validateUser(userCreate)
+	if validationError != nil {
+		return response.UserResponse{}, validationError
+	}
+
 	hashedPassword, err := security.HashPassword(userCreate.Password)
 	if err != nil {
 		return response.UserResponse{}, err
 	}
-
 	user, err := userService.userRepository.AddUser(domain.User{
 		Username: userCreate.Username,
 		Email:    userCreate.Email,
@@ -59,4 +66,26 @@ func convertUsersToResponses(users []domain.User) []response.UserResponse {
 	}
 
 	return userResponses
+}
+
+func validateUser(userCreate request.UserCreate) error {
+	if strings.TrimSpace(userCreate.Username) == "" {
+		return errors.New("Username cannot be empty")
+	}
+
+	if !isValidEmail(userCreate.Email) {
+		return errors.New("Invalid email format")
+	}
+
+	if len(userCreate.Password) < 5 {
+		return errors.New("Password must be at least 8 characters long")
+	}
+
+	return nil
+}
+
+func isValidEmail(email string) bool {
+	const emailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	re := regexp.MustCompile(emailRegex)
+	return re.MatchString(email)
 }

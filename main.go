@@ -19,8 +19,13 @@ func main() {
 	todoRepo := persistence.NewTodoRepository(dbPool)
 	todoService := service.NewTodoService(todoRepo)
 	todoController := controller.NewTodoController(todoService)
+	todoController.RegisterTodoRoutes(server)
 
-	todoController.RegisterRoutes(server)
+	userRepo := persistence.NewUserRepository(dbPool)
+	userService := service.NewUserService(userRepo)
+	authService := service.NewAuthService(userService)
+	authController := controller.NewAuthController(authService)
+	authController.RegisterAuthRoutes(server)
 
 	err := server.Run(":8080")
 	if err != nil {
