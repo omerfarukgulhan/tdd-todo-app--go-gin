@@ -61,7 +61,7 @@ func (todoService TodoService) AddTodo(todoCreate request.TodoCreate) (response.
 	}
 
 	addedTodo, err := todoService.todoRepository.AddTodo(domain.Todo{
-		UserId:      1,
+		UserId:      todoCreate.UserId,
 		Title:       todoCreate.Title,
 		Description: todoCreate.Description,
 		IsCompleted: false,
