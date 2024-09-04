@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"todo-app--go-gin/common/util/results"
 	"todo-app--go-gin/controller/constants"
-	"todo-app--go-gin/controller/middlewares"
 	"todo-app--go-gin/domain/request"
 	"todo-app--go-gin/domain/response"
 	"todo-app--go-gin/service"
@@ -24,7 +23,6 @@ func (authController *AuthController) RegisterAuthRoutes(router *gin.Engine) {
 	{
 		authGroup.POST("/register", authController.Register)
 		authGroup.POST("/login", authController.Login)
-		authGroup.GET("/test", middlewares.Authenticate, authController.Test)
 	}
 }
 
@@ -62,16 +60,4 @@ func (authController *AuthController) Login(ctx *gin.Context) {
 	authResponse := response.NewAuthResponse(token)
 
 	ctx.JSON(http.StatusCreated, results.NewDataResult(true, constants.LoginSuccess, authResponse))
-}
-
-func (authController *AuthController) Test(context *gin.Context) {
-	// Retrieve the user ID from the context
-	userId, exists := context.Get("userId")
-	if !exists {
-		context.JSON(http.StatusUnauthorized, results.NewResult(false, "User ID not found in context"))
-		return
-	}
-
-	// Return the user ID in the JSON response
-	context.JSON(http.StatusOK, results.NewDataResult(true, "User ID retrieved successfully", gin.H{"userId": userId}))
 }
