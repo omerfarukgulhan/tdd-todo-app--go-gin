@@ -10,13 +10,12 @@ import (
 )
 
 type ITodoService interface {
-	GetAllTodos() ([]response.TodoResponse, error)
-	GetTodoById(todoId int) (response.TodoResponse, error)
-	GetAllTodosByUserId(userId int) ([]response.TodoResponse, error)
+	GetAllTodos(userId int) ([]response.TodoResponse, error)
+	GetTodoById(userId int, todoId int) (response.TodoResponse, error)
 	AddTodo(todoCreate request.TodoCreate) (response.TodoResponse, error)
 	UpdateTodo(todoId int, todoUpdate request.TodoUpdate) (response.TodoResponse, error)
-	ToggleTodo(todoId int) (response.TodoResponse, error)
-	DeleteTodo(todoId int) error
+	ToggleTodo(userId int, todoId int) (response.TodoResponse, error)
+	DeleteTodo(userId int, todoId int) error
 }
 
 type TodoService struct {
@@ -27,31 +26,26 @@ func NewTodoService(todoRepository persistence.ITodoRepository) ITodoService {
 	return &TodoService{todoRepository: todoRepository}
 }
 
-func (todoService TodoService) GetAllTodos() ([]response.TodoResponse, error) {
-	todos, err := todoService.todoRepository.GetAllTodos()
-	if err != nil {
-		return nil, err
-	}
-
-	return convertTodosToResponses(todos), nil
-}
-
-func (todoService TodoService) GetTodoById(todoId int) (response.TodoResponse, error) {
-	todo, err := todoService.todoRepository.GetTodoById(todoId)
-	if err != nil {
-		return response.TodoResponse{}, err
-	}
-
-	return response.NewTodoResponse(todo), nil
-}
-
-func (todoService TodoService) GetAllTodosByUserId(userId int) ([]response.TodoResponse, error) {
+func (todoService TodoService) GetAllTodos(userId int) ([]response.TodoResponse, error) {
 	todos, err := todoService.todoRepository.GetAllTodosByUserId(userId)
 	if err != nil {
 		return nil, err
 	}
 
 	return convertTodosToResponses(todos), nil
+}
+
+func (todoService TodoService) GetTodoById(userId int, todoId int) (response.TodoResponse, error) {
+	todo, err := todoService.todoRepository.GetTodoById(todoId)
+	if err != nil {
+		return response.TodoResponse{}, err
+	}
+
+	if todo.UserId != userId {
+		return response.TodoResponse{}, errors.New("This todo is not belongs to you")
+	}
+
+	return response.NewTodoResponse(todo), nil
 }
 
 func (todoService TodoService) AddTodo(todoCreate request.TodoCreate) (response.TodoResponse, error) {
@@ -86,6 +80,10 @@ func (todoService TodoService) UpdateTodo(todoId int, todoUpdate request.TodoUpd
 		return response.TodoResponse{}, err
 	}
 
+	if todo.UserId != todoUpdate.UserId {
+		return response.TodoResponse{}, errors.New("This todo is not belongs to you")
+	}
+
 	todo.UpdatedAt = time.Now()
 	todo.Title = todoUpdate.Title
 	todo.Description = todoUpdate.Description
@@ -99,10 +97,14 @@ func (todoService TodoService) UpdateTodo(todoId int, todoUpdate request.TodoUpd
 	return response.NewTodoResponse(todo), nil
 }
 
-func (todoService TodoService) ToggleTodo(todoId int) (response.TodoResponse, error) {
+func (todoService TodoService) ToggleTodo(userId int, todoId int) (response.TodoResponse, error) {
 	todo, err := todoService.todoRepository.GetTodoById(todoId)
 	if err != nil {
 		return response.TodoResponse{}, err
+	}
+
+	if todo.UserId != userId {
+		return response.TodoResponse{}, errors.New("This todo is not belongs to you")
 	}
 
 	todo.IsCompleted = !todo.IsCompleted
@@ -115,7 +117,16 @@ func (todoService TodoService) ToggleTodo(todoId int) (response.TodoResponse, er
 	return response.NewTodoResponse(todo), nil
 }
 
-func (todoService TodoService) DeleteTodo(todoId int) error {
+func (todoService TodoService) DeleteTodo(userId int, todoId int) error {
+	todo, err := todoService.GetTodoById(userId, todoId)
+	if err != nil {
+		return err
+	}
+
+	if todo.UserId != userId {
+		return errors.New("This todo is not belongs to you")
+	}
+
 	return todoService.todoRepository.DeleteTodo(todoId)
 }
 

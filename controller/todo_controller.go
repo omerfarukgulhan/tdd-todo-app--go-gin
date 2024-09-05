@@ -23,76 +23,64 @@ func NewTodoController(todoService service.ITodoService) *TodoController {
 func (todoController *TodoController) RegisterTodoRoutes(router *gin.Engine) {
 	todoGroup := router.Group("/todos")
 	{
+		todoGroup.Use(middlewares.Authenticate)
 		todoGroup.GET("", todoController.GetAllTodos)
-		authTodoGroup := todoGroup.Group("")
-		{
-			authTodoGroup.Use(middlewares.Authenticate)
-			authTodoGroup.GET("/:id", todoController.GetTodoById)
-			authTodoGroup.GET("/user/:userId", todoController.GetAllTodosByUserId)
-			authTodoGroup.POST("/", todoController.AddTodo)
-			authTodoGroup.PUT("/:id", todoController.UpdateTodo)
-			authTodoGroup.PUT("/toggle/:id", todoController.ToggleTodo)
-			authTodoGroup.DELETE("/:id", todoController.DeleteTodo)
-		}
+		todoGroup.GET("/:id", todoController.GetTodoById)
+		todoGroup.POST("/", todoController.AddTodo)
+		todoGroup.PUT("/:id", todoController.UpdateTodo)
+		todoGroup.PUT("/toggle/:id", todoController.ToggleTodo)
+		todoGroup.DELETE("/:id", todoController.DeleteTodo)
 	}
 }
 
 func (todoController *TodoController) GetAllTodos(ctx *gin.Context) {
-	todos, err := todoController.todoService.GetAllTodos()
+	userId, err := util.GetUserIdFromContext(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, results.NewResult(false, constants.Unauthorized))
+		return
+	}
+
+	todos, err := todoController.todoService.GetAllTodos(userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, results.NewResult(false, err.Error()))
 		return
 	}
+
 	ctx.JSON(http.StatusOK, results.NewDataResult(true, constants.DataFetched, todos))
 }
 
 func (todoController *TodoController) GetTodoById(ctx *gin.Context) {
+	userId, err := util.GetUserIdFromContext(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, results.NewResult(false, constants.Unauthorized))
+		return
+	}
+
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, results.NewResult(false, "Invalid todo id"))
 		return
 	}
 
-	todo, err := todoController.todoService.GetTodoById(id)
+	todo, err := todoController.todoService.GetTodoById(userId, id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, results.NewResult(false, err.Error()))
-		return
-	}
-
-	userId, _ := ctx.Get("userId")
-	if userId != todo.UserId {
-		ctx.JSON(http.StatusUnauthorized, results.NewResult(false, constants.Unauthorized))
 		return
 	}
 
 	ctx.JSON(http.StatusOK, results.NewDataResult(true, constants.DataFetched, todo))
 }
 
-func (todoController *TodoController) GetAllTodosByUserId(ctx *gin.Context) {
-	userId, err := strconv.Atoi(ctx.Param("userId"))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, results.NewResult(false, "Invalid user id"))
-		return
-	}
-
-	todos, err := todoController.todoService.GetAllTodosByUserId(userId)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, results.NewResult(false, err.Error()))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, results.NewDataResult(true, constants.DataFetched, todos))
-}
-
 func (todoController *TodoController) AddTodo(ctx *gin.Context) {
+	userId, err := util.GetUserIdFromContext(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, results.NewResult(false, constants.Unauthorized))
+		return
+	}
+
 	var newTodo request.TodoCreate
 	if err := ctx.ShouldBindJSON(&newTodo); err != nil {
 		ctx.JSON(http.StatusBadRequest, results.NewResult(false, "Enter todo in valid format"))
-		return
-	}
-	userId, err := util.GetUserIdFromContext(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, results.NewResult(false, err.Error()))
 		return
 	}
 
@@ -107,6 +95,12 @@ func (todoController *TodoController) AddTodo(ctx *gin.Context) {
 }
 
 func (todoController *TodoController) UpdateTodo(ctx *gin.Context) {
+	userId, err := util.GetUserIdFromContext(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, results.NewResult(false, constants.Unauthorized))
+		return
+	}
+
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, results.NewResult(false, "Invalid todo id"))
@@ -119,6 +113,7 @@ func (todoController *TodoController) UpdateTodo(ctx *gin.Context) {
 		return
 	}
 
+	updatedTodo.UserId = userId
 	todo, err := todoController.todoService.UpdateTodo(id, updatedTodo)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, results.NewResult(false, err.Error()))
@@ -129,13 +124,19 @@ func (todoController *TodoController) UpdateTodo(ctx *gin.Context) {
 }
 
 func (todoController *TodoController) ToggleTodo(ctx *gin.Context) {
+	userId, err := util.GetUserIdFromContext(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, results.NewResult(false, constants.Unauthorized))
+		return
+	}
+
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, results.NewResult(false, "Invalid todo id"))
 		return
 	}
 
-	todo, err := todoController.todoService.ToggleTodo(id)
+	todo, err := todoController.todoService.ToggleTodo(userId, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, results.NewResult(false, err.Error()))
 		return
@@ -145,13 +146,19 @@ func (todoController *TodoController) ToggleTodo(ctx *gin.Context) {
 }
 
 func (todoController *TodoController) DeleteTodo(ctx *gin.Context) {
+	userId, err := util.GetUserIdFromContext(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, results.NewResult(false, constants.Unauthorized))
+		return
+	}
+
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, results.NewResult(false, "Invalid todo id"))
 		return
 	}
 
-	err = todoController.todoService.DeleteTodo(id)
+	err = todoController.todoService.DeleteTodo(userId, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, results.NewResult(false, err.Error()))
 		return
